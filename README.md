@@ -1,1 +1,9 @@
-# TP4-Base-De-Datos-2
+### Integrantes:
+- Jeronimo Baltian Ortiz
+- Carlos Alberto Arce
+- Gianfranco Campagnucci
+- Dario Colantonio
+***
+### Practico:
+Trabajo Practico 4
+***
