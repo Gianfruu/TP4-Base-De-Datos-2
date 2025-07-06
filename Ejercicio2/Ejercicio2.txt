@@ -1,0 +1,78 @@
+//CREACION DE DATOS
+CREATE (sistemas:Carrera {nombre: "Sistemas"}),
+       (medicina:Carrera {nombre: "Medicina"}),
+       (derecho:Carrera {nombre: "Derecho"});
+
+CREATE (jeronimo:Estudiante {nombre: "Jeronimo"}),
+       (gianfranco:Estudiante {nombre: "Gianfranco"}),
+       (dario:Estudiante {nombre: "Dario"}),
+       (Lucia:Estudiante {nombre: "Lucia"});
+       
+CREATE (prog:Categoria {nombre: "Programación"}),
+       (med:Categoria {nombre: "Medicina"}),
+       (hist:Categoria {nombre: "Historia"}),
+       (mat:Categoria {nombre: "Matemáticas"});
+
+CREATE (java:Libro {titulo: "Java Básico"}),
+       (anatomia:Libro {titulo: "Anatomía Humana"}),
+       (historia:Libro {titulo: "Historia Argentina"}),
+       (calculo:Libro {titulo: "Cálculo I"});
+
+//CREACION DE RELACIONES
+
+MATCH (jeronimo:Estudiante {nombre: "Jeronimo"}), (sistemas:Carrera {nombre: "Sistemas"}),
+      (gianfranco:Estudiante {nombre: "Gianfranco"}), (medicina:Carrera {nombre: "Medicina"}),
+      (dario:Estudiante {nombre: "Dario"}), (derecho:Carrera {nombre: "Derecho"}),
+      (lucia:Estudiante {nombre: "Lucia"})
+CREATE (jeronimo)-[:ESTUDIA]->(sistemas),
+       (gianfranco)-[:ESTUDIA]->(medicina),
+       (dario)-[:ESTUDIA]->(derecho),
+       (lucia)-[:ESTUDIA]->(sistemas);
+
+MATCH (java:Libro {titulo: "Java Básico"}), (prog:Categoria {nombre: "Programación"}),
+      (anatomia:Libro {titulo: "Anatomía Humana"}), (med:Categoria {nombre: "Medicina"}),
+      (historia:Libro {titulo: "Historia Argentina"}), (hist:Categoria {nombre: "Historia"}),
+      (calculo:Libro {titulo: "Cálculo I"}), (mat:Categoria {nombre: "Matemáticas"})
+CREATE (java)-[:PERTENECE_A]->(prog),
+       (anatomia)-[:PERTENECE_A]->(med),
+       (historia)-[:PERTENECE_A]->(hist),
+       (calculo)-[:PERTENECE_A]->(mat);
+
+MATCH (jeronimo:Estudiante {nombre: "Jeronimo"}), (java:Libro {titulo: "Java Básico"}),
+      (calculo:Libro {titulo: "Cálculo I"})
+CREATE (jeronimo)-[:PRESTAMO {fecha: "2024-01-10", estado: "Activo"}]->(java),
+       (jeronimo)-[:PRESTAMO {fecha: "2024-01-05", estado: "Devuelto"}]->(calculo);
+
+MATCH (gianfranco:Estudiante {nombre: "Gianfranco"}), (anatomia:Libro {titulo: "Anatomía Humana"}),
+      (dario:Estudiante {nombre: "Dario"}), (historia:Libro {titulo: "Historia Argentina"})
+CREATE (gianfranco)-[:PRESTAMO {fecha: "2024-01-15", estado: "Activo"}]->(anatomia),
+       (dario)-[:PRESTAMO {fecha: "2024-01-12", estado: "Activo"}]->(historia);
+
+MATCH (dario:Estudiante {nombre: "Dario"}), (java:Libro {titulo: "Java Básico"})
+CREATE (dario)-[:PRESTAMO {fecha: "2024-01-08", estado: "Devuelto"}]->(java);
+
+
+//CONSULTAS
+
+1.Obtener todos los libros actualmente prestados (estado "Activo" ):
+
+MATCH (e:Estudiante)-[p:PRESTAMO {estado: "Activo"}]->(l:Libro)
+RETURN l.titulo AS Libro, e.nombre AS Estudiante
+
+2.Listar cuántos libros ha pedido prestado cada estudiante:
+
+MATCH (e:Estudiante)-[:PRESTAMO]->(l:Libro)
+RETURN e.nombre AS Estudiante, COUNT(l) AS Total_Prestamos
+
+3.Mostrar las categorías con más préstamos activos:
+
+MATCH (e:Estudiante)-[p:PRESTAMO {estado: "Activo"}]->(l:Libro)-[:PERTENECE_A]->(c:Categoria)
+RETURN c.nombre AS Categoria, COUNT(p) AS Prestamos_Activos
+ORDER BY Prestamos_Activos DESC
+
+4.Encontrar los estudiantes que no tienen préstamos activos:
+
+
+MATCH (e:Estudiante)
+WHERE NOT (e)-[:PRESTAMO {estado: "Activo"}]->()
+RETURN e.nombre AS Estudiante

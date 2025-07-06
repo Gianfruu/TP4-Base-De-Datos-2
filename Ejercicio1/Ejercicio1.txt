@@ -1,0 +1,57 @@
+
+
+// MODELADO DE NODOS
+
+
+CREATE (dev:Departamento {nombre: "Desarrollo"}),
+       (marketing:Departamento {nombre: "Marketing"}),
+       (rrhh:Departamento {nombre: "RRHH"})
+
+CREATE (fabiana:Empleado {nombre: "Fabiana"}),
+       (carlos:Empleado {nombre: "Carlos"}),
+       (marta:Empleado {nombre: "Marta"})
+
+CREATE (p1:Proyecto {nombre: "Sistema Web"}),
+       (p2:Proyecto {nombre: "Campaña Digital"})
+
+//CREACION DE RELACIONES
+
+MATCH (fabiana:Empleado {nombre: "Fabiana"}), (dev:Departamento {nombre: "Desarrollo"}),
+      (carlos:Empleado {nombre: "Carlos"}), (marketing:Departamento {nombre: "Marketing"}),
+      (marta:Empleado {nombre: "Marta"}), (rrhh:Departamento {nombre: "RRHH"}),
+      (p1:Proyecto {nombre: "Sistema Web"}), (p2:Proyecto {nombre: "Campaña Digital"})
+
+CREATE (fabiana)-[:PERTENECE_A]->(dev),
+       (carlos)-[:PERTENECE_A]->(marketing),
+       (marta)-[:PERTENECE_A]->(rrhh),
+       (fabiana)-[:LIDERA]->(p1),
+       (carlos)-[:LIDERA]->(p2),
+       (fabiana)-[:TRABAJA_EN {horas: 30}]->(p1),
+       (fabiana)-[:TRABAJA_EN {horas: 10}]->(p2),
+       (carlos)-[:TRABAJA_EN {horas: 25}]->(p2),
+       (marta)-[:TRABAJA_EN {horas: 15}]->(p1),
+       (marta)-[:TRABAJA_EN {horas: 5}]->(p2)
+
+//CONSULTAS
+
+
+1- Obtener el nombre del proyecto, su líder y los empleados asignados:
+
+MATCH (p:Proyecto)<-[:LIDERA]-(lider)
+OPTIONAL MATCH (p)<-[:TRABAJA_EN]-(empleado)
+RETURN p.nombre AS Proyecto, 
+       lider.nombre AS Líder,
+       COLLECT(empleado.nombre) AS Empleados
+
+2- Calcular el total de horas semanales por proyecto:
+
+MATCH (p:Proyecto)<-[r:TRABAJA_EN]-(e)
+RETURN p.nombre AS Proyecto,
+       SUM(r.horas) AS Total_Horas
+
+3- Listar los empleados que trabajan en más de un proyecto:
+
+MATCH (e:Empleado)-[:TRABAJA_EN]->(p)
+WITH e, COUNT(p) AS proyectos
+WHERE proyectos > 1
+RETURN e.nombre AS Empleado, proyectos
