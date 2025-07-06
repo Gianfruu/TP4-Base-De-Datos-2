@@ -1,0 +1,73 @@
+MODELADO:
+
+Creacion de estudiantes, materias y cursos:
+
+CREATE (e1:Estudiante{nombre:"Martín"})
+CREATE (e2:Estudiante{nombre:"Pedro"})
+CREATE (e3:Estudiante{nombre:"Matías"})
+
+CREATE (mt1:Materia{nombre: "Química I"})
+CREATE (mt2:Materia{nombre:"Quimica II"})
+CREATE (mt3:Materia{nombre:"Introduccion a la carrera"})
+
+
+CREATE (c1:Curso {id: "C1"})
+CREATE (c2:Curso {id: "C2"})
+CREATE (c3:Curso {id: "C3"})
+CREATE (c4:Curso {id: "C4"})
+
+Creacion de relaciones:
+
+CREATE (mt2)-[:PRERREQUISITO]->(mt1)
+
+CREATE (c1)-[:DICTA]->(mt1)
+CREATE (c2)-[:DICTA]->(mt2)
+CREATE (c3)-[:DICTA]->(mt3)
+CREATE (c4)-[:DICTA]->(mt1)
+
+CREATE (e1)-[:INSCRITO_EN {nota: 8}]->(c1)
+CREATE (e1)-[:INSCRITO_EN {nota: 7}]->(c2)
+CREATE (e2)-[:INSCRITO_EN {nota: 4}]->(c1)
+CREATE (e3)-[:INSCRITO_EN {nota: 10}]->(c4)
+CREATE (e1)-[:INSCRITO_EN {nota: 5}]->(c3)
+CREATE (e3)-[:INSCRITO_EN {nota: 8}]->(c3)
+
+CONSULTAS:
+
+-Listar la transcripción académica de un estudiante:
+
+MATCH (e:Estudiante {nombre: "Matías"})-[ins:INSCRITO_EN]->(c:Curso)-[:DICTA]->(m:Materia)
+RETURN 
+  m.nombre AS Materia,
+  c.id AS Curso,
+  ins.nota AS Nota,
+  e.nombre AS Estudiante
+
+-Verificar si un estudiante puede inscribirse en una materia (si aprobó los prerrequisitos):
+
+MATCH (e:Estudiante {nombre: "Matías"})
+MATCH (m:Materia {nombre: "Quimica II"})-[:PRERREQUISITO]->(prer:Materia)
+MATCH (e)-[i:INSCRITO_EN]->(c:Curso)-[:DICTA]->(prer)
+WITH COUNT(prer) AS total_prerrequisitos,
+     COUNT(CASE WHEN i.nota >= 6 THEN 1 END) AS prerrequisitos_aprobados
+RETURN 
+  CASE 
+    WHEN total_prerrequisitos = prerrequisitos_aprobados THEN "Puede inscribirse"
+    ELSE "No puede inscribirse"
+  END AS Resultado;
+
+-Calcular el promedio de calificaciones por estudiante:
+
+MATCH (e:Estudiante)-[ins:INSCRITO_EN]->(:Curso)
+RETURN 
+  e.nombre AS Estudiante,
+  round(AVG(ins.nota)*100)/100.0 AS Promedio
+
+-Detectar materias con promedio inferior a 7:
+
+MATCH (:Estudiante)-[ins:INSCRITO_EN]->(c:Curso)-[:DICTA]->(m:Materia)
+WITH m.nombre AS Materia, AVG(ins.nota) AS Promedio
+WHERE Promedio < 7
+RETURN Materia, round(Promedio * 100) / 100.0 AS Promedio
+
+Cabe aclarar que este fragmento de la consulta "round(Promedio * 100) / 100.0" significa que redondea un numero a 2 decimales

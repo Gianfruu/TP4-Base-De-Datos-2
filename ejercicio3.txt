@@ -1,0 +1,86 @@
+MODELADO:
+
+Creaciones de usuarios, relaciones y publicaciones:
+
+CREATE (antonio:Usuario {nombre: "Antonio"})
+CREATE (juan:Usuario {nombre: "Juan Alberto"})
+CREATE (luis:Usuario {nombre: "Luis Alberto"})
+CREATE (martina:Usuario {nombre: "Martina"})
+
+CREATE (luis)-[:CONOCE]->(juan)
+CREATE (antonio)-[:CONOCE]->(juan)
+CREATE (antonio)-[:CONOCE]->(martina)
+CREATE (martina)-[:CONOCE]->(antonio)
+CREATE (juan)-[:CONOCE]->(luis)
+CREATE (luis)-[:CONOCE]->(antonio)
+
+CREATE (p1:Post {creador: "Luis", fecha: date("2025-07-01")})
+CREATE (p2:Post {creador: "Antonio", fecha: date("2025-07-02")})
+CREATE (p3:Post {creador: "Juan", fecha: date("2025-07-03")})
+
+
+CREATE (luis)-[:PUBLICA]->(p1)
+CREATE (antonio)-[:PUBLICA]->(p2)
+CREATE (juan)-[:PUBLICA]->(p3)
+
+Creaciones de habilidades y endosos:
+
+CREATE (h1:Habilidad {nombre: "JavaScript"})
+CREATE (h2:Habilidad {nombre: "Python"})
+CREATE (h3:Habilidad {nombre: "React"})
+CREATE (h4:Habilidad {nombre: "SQL"})
+CREATE (h5:Habilidad {nombre: "Node.js"})
+CREATE (h6:Habilidad {nombre: "Docker"})
+CREATE (h7:Habilidad {nombre: "Linux"})
+CREATE (h8:Habilidad {nombre: "HTML"})
+
+CREATE (antonio)-[:HABIL_EN]->(h1)
+CREATE (antonio)-[:HABIL_EN]->(h2)
+CREATE (juan)-[:HABIL_EN]->(h3)
+CREATE (juan)-[:HABIL_EN]->(h4)
+CREATE (luis)-[:HABIL_EN]->(h5)
+CREATE (luis)-[:HABIL_EN]->(h6)
+CREATE (martina)-[:HABIL_EN]->(h7)
+CREATE (martina)-[:HABIL_EN]->(h8)
+
+CREATE (juan)-[:ENDOSA]->(h1)
+CREATE (luis)-[:ENDOSA]->(h1)
+CREATE (martina)-[:ENDOSA]->(h1)
+
+CREATE (antonio)-[:ENDOSA]->(h3)
+CREATE (luis)-[:ENDOSA]->(h3)
+
+CREATE (juan)-[:ENDOSA]->(h5)
+CREATE (martina)-[:ENDOSA]->(h5)
+
+CREATE (antonio)-[:ENDOSA]->(h7)
+CREATE (juan)-[:ENDOSA]->(h7)
+
+CONSULTAS:
+
+-Usuarios con mas conexiones:
+
+MATCH (u:Usuario)-[:CONOCE]->()
+RETURN u.nombre AS Usuario, COUNT(*) AS Conexiones
+ORDER BY Conexiones DESC
+
+-Obtener los 2 usuarios con mas publicaciones:
+
+MATCH (u:Usuario)-[:PUBLICA]->(p:Post)
+RETURN u.nombre AS Usuario, COUNT(p) AS Publicaciones
+ORDER BY Publicaciones DESC
+LIMIT 2
+
+-Obtener las habilidades mas endosadas:
+
+MATCH (:Usuario)-[:ENDOSA]->(h:Habilidad)
+RETURN h.nombre AS Habilidad, COUNT(*) AS Endosos
+ORDER BY Endosos DESC
+
+-Obtener las habilidades no endosadas de un usuario especifico:
+
+MATCH (h:Habilidad)
+WHERE NOT EXISTS {
+  MATCH (:Usuario {nombre: "(ACA IRIA EL USUARIO ESPECIFICO)"})-[:ENDOSA]->(h)
+}
+RETURN h.nombre AS HabilidadNoEndosada
